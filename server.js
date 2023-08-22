@@ -15,7 +15,7 @@ const questions = () => {
             type: 'list',
             name: 'actions',
             message: 'What would you like to do?',
-            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Delete Employee', 'Delete Role', 'Delete Department', 'View Utilized Budget', 'Exit']
+            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'Update Employee Manager', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Delete Employee', 'Delete Role', 'Delete Department', 'View Utilized Budget', 'View Employees by Manager', 'View Employees by Department', 'Exit']
         }
     ])
         .then((answers) => {
@@ -63,6 +63,18 @@ const questions = () => {
 
             else if (actions === 'View Utilized Budget') {
                 viewBudget()
+            }
+
+            else if (actions === 'Update Employee Manager') {
+                updateEmployeeManager()
+            }
+
+            else if (actions === 'View Employees by Manager') {
+                viewEmployeesByManager()
+            }
+
+            else if (actions === 'View Employees by Department') {
+                viewEmployeesByDepartment()
             }
 
             else if (actions === 'Exit') {
@@ -331,6 +343,57 @@ updateEmployeeRole = () => {
     })
 }
 
+// function to update employee manager
+updateEmployeeManager = () => {
+    connection.query(`SELECT * FROM employee`, (err, result) => {
+        if (err) throw err
+        const employees = result.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }))
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'name',
+                message: 'Select an employee to update',
+                choices: employees
+            }
+        ])
+            .then(employeeChoice => {
+                const employee = employeeChoice.name
+                const choices = []
+                choices.push(employee)
+
+                connection.query(`SELECT * FROM employee`, (err, result) => {
+                    if (err) throw err
+                    const managers = result.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }))
+
+                    inquirer.prompt([
+                        {
+                            type: 'list',
+                            name: 'manager',
+                            message: 'Select employee manager',
+                            choices: managers
+                        }
+                    ])
+                        .then(managerChoice => {
+                            const manager = managerChoice.manager
+                            choices.push(manager)
+
+                            let employee = choices[0]
+                            choices[0] = manager
+                            choices[1] = employee
+
+                            connection.query(`UPDATE employee SET manager_id = ? WHERE id = ?`, choices, (err, result) => {
+                                if (err) throw err
+                                console.log('Employee has been successfully updated')
+
+                                viewEmployees()
+                            })
+                        })
+                })
+            })
+    })
+}
+
 // function to delete employee
 deleteEmployee = () => {
     connection.query(`SELECT * FROM employee`, (err, result) => {
@@ -412,6 +475,7 @@ deleteDepartment = () => {
     })
 }
 
+// function to view budget
 viewBudget = () => {
     connection.query(`SELECT department_id AS id,
                              department.name AS department,
