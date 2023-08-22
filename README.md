@@ -25,7 +25,7 @@ This application helps business owners organize and plan their businesses.
 ## Usage
 This application is used by answering questions through Inquirer in the user's command line. 
 
-Refer to this video for a walk-through: [Screencastify]()
+Refer to this video for a walk-through: [Screencastify](https://drive.google.com/file/d/1ILRSpY88sI7M6wCFjjNKnOK9RxVx2hnR/view)
 
 ## License
 This application is unlicensed.
