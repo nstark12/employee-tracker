@@ -162,8 +162,8 @@ addEmployee = () => {
         })
     }
 
-    // function to add role
-    addRole = () => {
+// function to add role
+addRole = () => {
         inquirer.prompt([
             {
                 type: 'input',
@@ -221,6 +221,33 @@ addEmployee = () => {
                         })
                 })
             })
-    }
+}
+
+// function to add department
+addDepartment = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'department',
+            message: 'Please enter department name',
+            validate: validateDepartment => {
+                if (validateDepartment) {
+                    return true
+                } else {
+                    console.log('Please add valid department')
+                    return false
+                }
+            }
+        }
+    ])
+        .then((answer) => {
+            connection.query(`INSERT INTO department (name) VALUES (?)`, [answer.department], (err, result) => {
+                if (err) throw err
+                console.log(`Added ${answer.department} to departments!`)
+
+                viewDepartments()
+            })
+        })
+}
 
 
