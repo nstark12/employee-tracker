@@ -357,3 +357,30 @@ deleteEmployee = () => {
             })
     })
 }
+
+// function to delete role
+deleteRole = () => {
+    connection.query(`SELECT * FROM role`, (err, result) => {
+        if (err) throw err
+        const roles = result.map(({ title, id }) => ({ name: title, value: id }))
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'role',
+                message: 'Please select role to remove',
+                choices: roles
+            }
+        ])
+            .then(roleChoice => {
+                const role = roleChoice.role
+
+                connection.query(`DELETE FROM role WHERE id = ?`, role, (err, result) => {
+                    if (err) throw err
+                    console.log('Role removed successfully')
+
+                    viewRoles()
+                })
+            })
+    })
+}
