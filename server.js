@@ -116,7 +116,7 @@ addEmployee = () => {
             // get roles
             connection.query(`SELECT role.id, role.title FROM role`, (err, result) => {
                 if (err) throw err
-                const roles = data.map(({ id, title }) => ({ name: title, value: id }))
+                const roles = result.map(({ id, title }) => ({ name: title, value: id }))
 
                 inquirer.prompt([
                     {
@@ -131,9 +131,9 @@ addEmployee = () => {
                         choices.push(role)
 
                         // get manager
-                        connection.query(`SELECT * FROM EMPLOYEE`, (err, results) => {
+                        connection.query(`SELECT * FROM EMPLOYEE`, (err, result) => {
                             if (err) throw err
-                            const managers = data.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }))
+                            const managers = result.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }))
 
                             inquirer.prompt([
                                 {
@@ -148,7 +148,7 @@ addEmployee = () => {
                                     choices.push(manager)
 
                                     connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-                                    VALUES (?, ?, ?, ?)`, (err, results) => {
+                                    VALUES (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleChoice.role, managerChoice.manager], (err, result) => {
                                         if (err) throw err
                                         console.log('Employee successfully added!')
 
