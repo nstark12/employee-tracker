@@ -15,7 +15,7 @@ const questions = () => {
             type: 'list',
             name: 'actions',
             message: 'What would you like to do?',
-            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department']
+            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Exit']
         }
     ])
         .then((answers) => {
@@ -48,6 +48,11 @@ const questions = () => {
             else if (actions === 'Add Department') {
                 addDepartment()
             }
+
+            else if (actions === 'Exit') {
+                connection.end()
+                console.log('Connection ended')
+            }
         })
 }
 
@@ -55,7 +60,16 @@ const questions = () => {
 
 // function to view all employees
 viewEmployees = () => {
-    connection.query(`SELECT * FROM employee`, (err, result) => {
+    connection.query(`SELECT employee.id,
+                             employee.first_name,
+                             employee.last_name,
+                             role.title,
+                             department.name AS department,
+                             role.salary,
+                             CONCAT (manager.first_name, " ", manager.last_name) AS manager FROM employee
+                             LEFT JOIN role ON employee.role_id = role.id
+                             LEFT JOIN department ON role.department_id = department.id
+                             LEFT JOIN employee manager ON employee.manager_id = manager.id`, (err, result) => {
         if (err) throw err
         console.table(result)
         questions()
@@ -250,4 +264,54 @@ addDepartment = () => {
         })
 }
 
+// function to update employee role
+updateEmployeeRole = () => {
+    connection.query(`SELECT * FROM employee`, (err, result) => {
+        if (err) throw err
+        const employees = result.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }))
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'name',
+                message: 'Please select employee to update',
+                choices: employees
+            }
+        ])
+            .then(employeeChoice => {
+                const employee = employeeChoice.name
+                const choices = []
+                choices.push(employee)
+
+                connection.query(`SELECT * FROM role`, (err, result) => {
+                    if (err) throw err
+                    const roles = result.map(({ id, title }) => ({ name: title, value: id }))
+
+                    inquirer.prompt([
+                        {
+                            type: 'list',
+                            name: 'role',
+                            message: 'Please select new employee role',
+                            choices: roles
+                        }
+                    ])
+                        .then(roleChoice => {
+                            const role = roleChoice.role
+                            choices.push(role)
+
+                            let employee = choices[0]
+                            choices[0] = role
+                            choices[1] = employee
+
+                            connection.query(`UPDATE employee SET role_id = ? WHERE id = ?`, choices, (err, result) => {
+                                if (err) throw err
+                                console.log('Employee successfully updated!')
+
+                                viewEmployees()
+                            })
+                        })
+                })
+            })
+    })
+}
 
