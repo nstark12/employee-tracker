@@ -15,7 +15,7 @@ const questions = () => {
             type: 'list',
             name: 'actions',
             message: 'What would you like to do?',
-            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Exit']
+            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Delete Employee', 'Delete Role', 'Delete Department', 'View Utilized Budget', 'Exit']
         }
     ])
         .then((answers) => {
@@ -47,6 +47,22 @@ const questions = () => {
 
             else if (actions === 'Add Department') {
                 addDepartment()
+            }
+
+            else if (actions === 'Delete Employee') {
+                deleteEmployee()
+            }
+
+            else if (actions === 'Delete Role') {
+                deleteRole()
+            }
+
+            else if (actions === 'Delete Department') {
+                deleteDepartment()
+            }
+
+            else if (actions === 'View Utilized Budget') {
+                viewBudget()
             }
 
             else if (actions === 'Exit') {
@@ -315,3 +331,29 @@ updateEmployeeRole = () => {
     })
 }
 
+// function to delete employee
+deleteEmployee = () => {
+    connection.query(`SELECT * FROM employee`, (err, result) => {
+        if (err) throw err
+        const employees = result.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id}))
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'name',
+                message: 'Please select employee to remove',
+                choices: employees
+            }
+        ])
+            .then(employeeChoice => {
+                const employee = employeeChoice.name
+
+                connection.query(`DELETE FROM employee WHERE id = ?`, employee, (err, result) => {
+                    if (err) throw err
+                    console.log('Employee removed successfully')
+
+                    viewEmployees()
+                })
+            })
+    })
+}
