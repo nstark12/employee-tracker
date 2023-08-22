@@ -384,3 +384,30 @@ deleteRole = () => {
             })
     })
 }
+
+// function to delete department
+deleteDepartment = () => {
+    connection.query(`SELECT * FROM department`, (err, result) => {
+        if (err) throw err
+        const departments = result.map(({ name, id }) => ({ name: name, value: id }))
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: 'Please select department to remove',
+                choices: departments
+            }
+        ])
+            .then(departmentChoice => {
+                const department = departmentChoice.department
+
+                connection.query(`DELETE FROM department WHERE id = ?`, department, (err, result) => {
+                    if (err) throw errc
+                    console.log('Department removed successfully')
+
+                    viewDepartments()
+                })
+            })
+    })
+}
