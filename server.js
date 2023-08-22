@@ -148,7 +148,7 @@ addEmployee = () => {
                                     choices.push(manager)
 
                                     connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-                                    VALUES (?, ?, ?, ?)`, [answer.firstName, answer.lastName, roleChoice.role, managerChoice.manager], (err, result) => {
+                                    VALUES (?)`, [choices], (err, result) => {
                                         if (err) throw err
                                         console.log('Employee successfully added!')
 
@@ -160,6 +160,67 @@ addEmployee = () => {
                 })
             
         })
+    }
+
+    // function to add role
+    addRole = () => {
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'role',
+                message: 'Enter role',
+                validate: validateRole => {
+                    if (validateRole) {
+                        return true
+                    } else {
+                        console.log('Please enter valid role')
+                        return false
+                    }
+                }
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'Enter salary for this role',
+                validate: validateSalary => {
+                    if (validateSalary) {
+                        return true
+                    } else {
+                        console.log('Please enter valid salary')
+                        return false
+                    }
+                }
+            }
+        ])
+            .then((answer) => {
+                const choices = [answer.role, answer.salary]
+
+                // get department
+                connection.query(`SELECT name, id FROM department`, (err, result) => {
+                    if (err) throw err
+                    const department = result.map(({ name, id }) => ({ name: name, value: id }))
+
+                    inquirer.prompt([
+                        {
+                            type: 'list',
+                            name: 'department',
+                            message: 'Please select the department for this role',
+                            choices: department
+                        }
+                    ])
+                        .then(departmentChoice => {
+                            const department = departmentChoice.department
+                            choices.push(department)
+
+                            connection.query(`INSERT INTO role (title, salary, department_id) VALUES (?)`, [choices], (err, result) => {
+                                if (err) throw err
+                                console.log(`Successfully added ${answer.role} to roles!`)
+
+                                viewRoles()
+                            })
+                        })
+                })
+            })
     }
 
 
